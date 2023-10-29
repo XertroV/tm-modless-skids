@@ -77,7 +77,7 @@ namespace SkidsCache {
             }
         }
         await(coros);
-        // startnew(ModFolders::Reload);
+        startnew(ModFolders::Reload);
     }
 
     void DownloadSkids(const string &in skidPath) {
