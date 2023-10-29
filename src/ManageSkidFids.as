@@ -87,9 +87,12 @@ void ApplySkids() {
     if (S_SkidsAsphaltPath.Length > 0) ModFolders::skids[0].Apply(S_SkidsAsphaltPath);
     if (S_SkidsDirtPath.Length > 0) ModFolders::skids[1].Apply(S_SkidsDirtPath);
     if (S_SkidsGrassPath.Length > 0) ModFolders::skids[2].Apply(S_SkidsGrassPath);
-    Notify("Updated Skidmarks. They will be visible when the map changes or you re-enter the map.");
-    lastSkidsAppliedTime = Time::Now;
-    Meta::SaveSettings();
+    bool anySkids = S_SkidsAsphaltPath.Length > 0 || S_SkidsDirtPath.Length > 0 || S_SkidsGrassPath.Length > 0;
+    if (anySkids) {
+        Notify("Updated Skidmarks. They will be visible when the map changes or you re-enter the map.");
+        lastSkidsAppliedTime = Time::Now;
+        Meta::SaveSettings();
+    }
 }
 
 
