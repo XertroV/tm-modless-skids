@@ -56,7 +56,12 @@ void DrawMainTabs() {
     UI::AlignTextToFramePadding();
     UI::TextWrapped("Choose your skidmarks: \\$888(compatible with mods)");
     DrawSkidsChoices();
-    UI::Dummy(vec2(10, 40));
+    if (DoesModWorkFolderExist()) {
+        UI::AlignTextToFramePadding();
+        UI::TextWrapped("\\$f80ModWork folder detected!\\$z If your skids don't seem to work, try deleting the ModWork folder at Documents/Trackmania/Skins/Stadium/ModWork");
+    } else {
+        UI::Dummy(vec2(10, 40));
+    }
     UI::Separator();
     UI::AlignTextToFramePadding();
     UI::Text("\\$f80Please do not update / uninstall this plugin while in a map!");

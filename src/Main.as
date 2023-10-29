@@ -48,3 +48,9 @@ void NotifyWarning(const string &in msg) {
     warn(msg);
     UI::ShowNotification(Meta::ExecutingPlugin().Name + ": Warning", msg, vec4(.9, .6, .2, .3), 15000);
 }
+
+const string ModWorkFolder = IO::FromUserGameFolder("Skins/Stadium/ModWork/").Replace("\\", "/");
+
+bool DoesModWorkFolderExist() {
+    return IO::FolderExists(ModWorkFolder);
+}
