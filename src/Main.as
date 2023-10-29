@@ -3,6 +3,7 @@ void Main(){
     startnew(SkidsCache::SoftInit);
     startnew(ModFolders::Load);
     while (true) {
+        while (!SkidsCache::_skidsCached) yield();
         while (!IsSafeToUpdateSkids()) yield();
         sleep(500);
         if (IsSafeToUpdateSkids()) {

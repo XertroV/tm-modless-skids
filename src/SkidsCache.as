@@ -2,13 +2,14 @@ namespace SkidsCache {
     const string MainDir = IO::FromUserGameFolder("Skins/Stadium/Skids/").Replace("\\", "/");
     const string IndexFile = MainDir + "index.txt";
     string[]@ skidsIndex = {};
+    bool restartRequired = false;
 
     const string baseURL = "https://s3.us-east-1.wasabisys.com/xert/Skids/";
     const string indexURL = baseURL + "index.txt";
     const string[] skidFolders = {"Asphalt", "Dirt", "Grass"};
 
     void SoftInit() {
-        _skidsCached = IO::FolderExists(MainDir);
+        _skidsCached = IsCached();
     }
 
     bool _skidsCached = false;
@@ -46,11 +47,13 @@ namespace SkidsCache {
             throw("Error downloading index file!");
         }
         ExtractProgress::Done();
-        // if (!IO::FolderExists(MainDir)) {
-            IO::CreateFolder(MainDir);
-            IO::CreateFolder(MainDir + skidFolders[0]);
-            IO::CreateFolder(MainDir + skidFolders[1]);
-            IO::CreateFolder(MainDir + skidFolders[2]);
+        if (!IO::FolderExists(MainDir)) {
+            restartRequired = true;
+        }
+        IO::CreateFolder(MainDir);
+        IO::CreateFolder(MainDir + skidFolders[0]);
+        IO::CreateFolder(MainDir + skidFolders[1]);
+        IO::CreateFolder(MainDir + skidFolders[2]);
         // }
         auto resp = req.String();
         auto lines = resp.Split("\n");
