@@ -3,6 +3,7 @@ name     = "Modless Skids"
 author   = "XertroV"
 category = "Race"
 version  = "0.1.0"
+siteid = 454
 
 [script]
 #__DEFINES__
