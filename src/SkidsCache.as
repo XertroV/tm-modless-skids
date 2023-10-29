@@ -16,6 +16,7 @@ namespace SkidsCache {
     uint _skidsCachedLastCheck = 0;
     bool IsCached() {
         if (_skidsCached) return true;
+        if (Loading) return false;
         if (Time::Now - _skidsCachedLastCheck > 1000) {
             _skidsCached = IO::FolderExists(MainDir);
         }
@@ -47,14 +48,14 @@ namespace SkidsCache {
             throw("Error downloading index file!");
         }
         ExtractProgress::Done();
-        if (!IO::FolderExists(MainDir)) {
-            restartRequired = true;
-        }
+        // if (!IO::FolderExists(MainDir)) {
+        //     restartRequired = true;
+        // }
         IO::CreateFolder(MainDir);
         IO::CreateFolder(MainDir + skidFolders[0]);
         IO::CreateFolder(MainDir + skidFolders[1]);
         IO::CreateFolder(MainDir + skidFolders[2]);
-        // }
+
         auto resp = req.String();
         auto lines = resp.Split("\n");
         IO::File ixf(IndexFile, IO::FileMode::Write);
@@ -80,6 +81,7 @@ namespace SkidsCache {
             }
         }
         await(coros);
+        startnew(RefreshSkinsUserMedia);
         startnew(ModFolders::Reload);
     }
 

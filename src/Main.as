@@ -55,3 +55,7 @@ const string ModWorkFolder = IO::FromUserGameFolder("Skins/Stadium/ModWork/").Re
 bool DoesModWorkFolderExist() {
     return IO::FolderExists(ModWorkFolder);
 }
+
+void RefreshSkinsUserMedia() {
+    cast<CTrackMania>(GetApp()).MenuManager.MenuCustom_CurrentManiaApp.DataFileMgr.Media_RefreshFromDisk(CGameDataFileManagerScript::EMediaType::Skins, 4);
+}
