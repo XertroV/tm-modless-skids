@@ -82,6 +82,7 @@ void RestoreOriginalSkids() {
 
 
 void ApplySkids() {
+    Fids::UpdateTree(Fids::GetUserFolder("Skins/Stadium/Skids"));
     // restore original so we unset stuff if the player unsets them
     RestoreOriginalSkids();
     if (S_SkidsAsphaltPath.Length > 0) ModFolders::skids[0].Apply(S_SkidsAsphaltPath);

@@ -16,7 +16,7 @@ namespace ModFolders {
 
     void Reload() {
         Load();
-        // Notify("Reloaded known ModWork folders");
+        Notify("Reloaded skids");
     }
 }
 

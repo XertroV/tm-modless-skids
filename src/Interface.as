@@ -89,6 +89,16 @@ void DrawSkidsChoices() {
     if (UI::Button("Update Skids")) {
         startnew(ApplySkids);
     }
+    UI::SameLine();
+    if (UI::Button("Refresh from Disk")) {
+        startnew(ModFolders::Reload);
+    }
+    UI::SameLine();
+    UI::BeginDisabled(SkidsCache::Loading);
+    if (UI::Button("Check for New Skids")) {
+        startnew(SkidsCache::DownloadAllSkids);
+    }
+    UI::EndDisabled();
     UI::EndDisabled();
     if (!IsSafeToUpdateSkids()) {
         UI::AlignTextToFramePadding();

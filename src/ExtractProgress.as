@@ -16,10 +16,13 @@ namespace ExtractProgress {
     void Done(uint n = 1) {
         done += n;
         if (done >= count) {
-            count = 0;
-            done = 0;
-            errored = 0;
+            Reset();
         }
+    }
+    void Reset() {
+        count = 0;
+        done = 0;
+        errored = 0;
     }
     void SubOne() {
         count -= 1;
@@ -32,6 +35,11 @@ namespace ExtractProgress {
 
     void Draw() {
         if (count == 0) return;
+        if (count == done) {
+            Reset();
+            return;
+        }
+
         UI::SetNextWindowPos(Draw::GetWidth() * 9 / 20, Draw::GetHeight() * 4 / 20, UI::Cond::Appearing);
         if (UI::Begin(currLabel + " Progress", UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoCollapse | UI::WindowFlags::NoCollapse)) {
             UX::Heading(currLabel + " Progress: ");
