@@ -34,16 +34,6 @@ void RenderInterface() {
         // main setup flow
         if (SkidsCache::Loading || !SkidsCache::IsCached()) {
             DrawSetup_CacheSkids();
-        // } else if (SkidsCache::restartRequired) {
-        //     UI::Text("Game restart required! Please restart the game.");
-        //     if (UI::Button("Eh. skip. (note: might not be able to load skids properly)")) {
-        //         SkidsCache::restartRequired = false;
-        //         auto menuDfm = cast<CTrackMania>(GetApp()).MenuManager.MenuCustom_CurrentManiaApp.DataFileMgr;
-        //         menuDfm.Media_RefreshFromDisk(CGameDataFileManagerScript::EMediaType::Skins, 4);
-        //     }
-        //     if (UI::Button("Skip without media refresh")) {
-        //         SkidsCache::restartRequired = false;
-        //     }
         } else {
             DrawMainTabs();
         }
@@ -74,7 +64,7 @@ void DrawMainTabs() {
     }
     UI::Separator();
     UI::AlignTextToFramePadding();
-    UI::Text("\\$f80Please do not update / uninstall this plugin while in a map!");
+    UI::Text("\\$f80Please do not update / uninstall this plugin outside the main menu!");
 }
 
 void DrawSkidsChoices() {

@@ -61,6 +61,7 @@ void SetTextureSkids(const string &in loadPath, const string &in gameFidPathToRe
 
     SetFidNod(skidsGameFid, gbSkid.Nod);
     dev_log("set " + gameFidPathToReplace + " to " + loadPath);
+    warn("DEBUG set " + gameFidPathToReplace + " to " + loadPath);
 }
 
 void SetFidNod(CSystemFidFile@ fid, CMwNod@ nod) {
@@ -82,7 +83,9 @@ void RestoreOriginalSkids() {
 
 
 void ApplySkids() {
-    Fids::UpdateTree(Fids::GetUserFolder("Skins/Stadium/Skids"));
+    auto skidsFolder = Fids::GetUserFolder("Skins/Stadium/Skids");
+    if (skidsFolder is null) warn("ApplySkids: failed to get user folder for skids!");
+    else Fids::UpdateTree(skidsFolder);
     // restore original so we unset stuff if the player unsets them
     RestoreOriginalSkids();
     if (S_SkidsAsphaltPath.Length > 0) ModFolders::skids[0].Apply(S_SkidsAsphaltPath);

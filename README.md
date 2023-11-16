@@ -2,7 +2,7 @@
 
 Replace default skids with custom ones -- compatible with mods.
 
-Can only be used outside a map.
+Can only be used to update skids while in the main menu.
 
 Once you've applied skids, they will be autoloaded the next time TM starts.
 

@@ -12,12 +12,12 @@ namespace SkidsCache {
         _skidsCached = IsCached();
     }
 
-    bool _skidsCached = false;
-    uint _skidsCachedLastCheck = 0;
+    bool _skidsCached = IO::FolderExists(MainDir);
+    int _skidsCachedLastCheck = -1000;
     bool IsCached() {
         if (_skidsCached) return true;
         if (Loading) return false;
-        if (Time::Now - _skidsCachedLastCheck > 1000) {
+        if (Time::Now - _skidsCachedLastCheck >= 1000) {
             _skidsCached = IO::FolderExists(MainDir);
         }
         return _skidsCached;
