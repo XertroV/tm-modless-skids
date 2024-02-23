@@ -20,6 +20,7 @@ dictionary origSkids;
 
 enum SkidType {
     Asphalt, Dirt, Grass, Sand, Snow, WetWheels, Ice,
+    DirtSmoke, AsphaltSmoke,
     Unknown
 }
 
@@ -27,6 +28,8 @@ void SetSkids(const string &in loadPath, SkidType type) {
     string fidPath = type == SkidType::Asphalt ? "GameData/Stadium/Media/Texture CarFx/Image/CarAsphaltMarks.dds"
         : type == SkidType::Dirt ? "GameData/Stadium/Media/Texture CarFx/Image/CarDirtMarks.dds"
         : type == SkidType::Grass ? "GameData/Stadium/Media/Texture CarFx/Image/CarGrassMarks.dds"
+        : type == SkidType::DirtSmoke ? "GameData/Stadium/Media/Texture CarFx/Image/DirtSmoke.dds"
+        : type == SkidType::AsphaltSmoke ? "GameData/Vehicles/Media/Texture/Image/AsphaltSmoke.dds"
         : ""
         ;
     if (fidPath.Length == 0) {
@@ -91,7 +94,10 @@ void ApplySkids() {
     if (S_SkidsAsphaltPath.Length > 0) ModFolders::skids[0].Apply(S_SkidsAsphaltPath);
     if (S_SkidsDirtPath.Length > 0) ModFolders::skids[1].Apply(S_SkidsDirtPath);
     if (S_SkidsGrassPath.Length > 0) ModFolders::skids[2].Apply(S_SkidsGrassPath);
-    bool anySkids = S_SkidsAsphaltPath.Length > 0 || S_SkidsDirtPath.Length > 0 || S_SkidsGrassPath.Length > 0;
+    if (S_DisableDirtSmoke) SetSkids("Skins/Stadium/Skids/Dirt/DirtSmoke.dds", SkidType::DirtSmoke);
+    if (S_DisableAsphaltSmoke) SetSkids("Skins/Stadium/Skids/Asphalt/AsphaltSmoke.dds", SkidType::AsphaltSmoke);
+    bool anySkids = S_SkidsAsphaltPath.Length > 0 || S_SkidsDirtPath.Length > 0 || S_SkidsGrassPath.Length > 0
+        || S_DisableDirtSmoke || S_DisableAsphaltSmoke;
     if (anySkids) {
         Notify("Updated Skidmarks. They will be visible when the map changes or you re-enter the map.");
         lastSkidsAppliedTime = Time::Now;

@@ -81,7 +81,13 @@ class SkidmarkFiles : ModSourceFolder {
         auto dest = skidType == "Asphalt" ? SkidType::Asphalt
             : skidType == "Dirt" ? SkidType::Dirt
             : skidType == "Grass" ? SkidType::Grass
+            : skidType == "DirtSmoke" ? SkidType::DirtSmoke
+            : skidType == "AsphaltSmoke" ? SkidType::AsphaltSmoke
             : SkidType::Unknown;
         SetSkids(source, dest);
+    }
+
+    void ApplySmoke() {
+        auto source = "Skins/Stadium/Skids/" + skidType + "/" + "DirtSmoke.dds";
     }
 }

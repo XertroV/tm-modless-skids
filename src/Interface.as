@@ -72,11 +72,12 @@ void DrawSkidsChoices() {
     S_SkidsAsphaltPath = DrawSkidsCombo(ModFolders::skids[0], S_SkidsAsphaltPath);
     S_SkidsDirtPath = DrawSkidsCombo(ModFolders::skids[1], S_SkidsDirtPath);
     S_SkidsGrassPath = DrawSkidsCombo(ModFolders::skids[2], S_SkidsGrassPath);
-
+    S_DisableAsphaltSmoke = UI::Checkbox("Disable Asphalt Smoke?", S_DisableAsphaltSmoke);
+    S_DisableDirtSmoke = UI::Checkbox("Disable Dirt Smoke?", S_DisableDirtSmoke);
     // todo: draw preview?
 
     UI::BeginDisabled(!IsSafeToUpdateSkids() || Time::Now - lastSkidsAppliedTime < 1000);
-    if (UI::Button("Update Skids")) {
+    if (UI::Button("Apply Skids")) {
         startnew(ApplySkids);
     }
     UI::SameLine();
