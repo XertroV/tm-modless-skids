@@ -30,7 +30,7 @@ void RenderMenu() {
 void RenderInterface() {
     if (!ShowWindow) return;
     UI::SetNextWindowSize(500, 300, UI::Cond::FirstUseEver);
-    if (UI::Begin(WindowTitle, ShowWindow)) {
+    if (UI::Begin(WindowTitle, ShowWindow, UI::WindowFlags::NoCollapse | UI::WindowFlags::AlwaysAutoResize)) {
         // main setup flow
         if (SkidsCache::Loading || !SkidsCache::IsCached()) {
             DrawSetup_CacheSkids();
@@ -74,6 +74,7 @@ void DrawSkidsChoices() {
     S_SkidsGrassPath = DrawSkidsCombo(ModFolders::skids[2], S_SkidsGrassPath);
     S_DisableAsphaltSmoke = UI::Checkbox("Disable Asphalt Smoke?", S_DisableAsphaltSmoke);
     S_DisableDirtSmoke = UI::Checkbox("Disable Dirt Smoke?", S_DisableDirtSmoke);
+    S_DisableDirtMask = UI::Checkbox("Disable Dirt Mask?", S_DisableDirtMask);
     // todo: draw preview?
 
     UI::BeginDisabled(!IsSafeToUpdateSkids() || Time::Now - lastSkidsAppliedTime < 1000);

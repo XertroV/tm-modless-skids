@@ -9,3 +9,5 @@ string S_SkidsGrassPath = "";
 bool S_DisableDirtSmoke = false;
 [Setting hidden]
 bool S_DisableAsphaltSmoke = false;
+[Setting hidden]
+bool S_DisableDirtMask = false;

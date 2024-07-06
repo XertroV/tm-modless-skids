@@ -1,10 +1,15 @@
 void Main(){
     startnew(LoadFonts);
-    startnew(SkidsCache::SoftInit);
+    SkidsCache::SoftInit();
+    bool hasExistingSkids = SkidsCache::IsCached();
     startnew(ModFolders::Load);
     trace("DEBUG started coros");
     sleep(100);
     trace("DEBUG Time::Now: " + Time::Now);
+    //
+    if (hasExistingSkids) {
+        SkidsCache::DownloadAllSkids();
+    }
     sleep(100);
     auto skidsFolder = Fids::GetGameFolder("Skins\\Stadium\\Skids");
     if (skidsFolder !is null) {

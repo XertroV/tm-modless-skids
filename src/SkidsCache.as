@@ -6,7 +6,7 @@ namespace SkidsCache {
 
     const string baseURL = "https://s3.us-east-1.wasabisys.com/xert/Skids/";
     const string indexURL = baseURL + "index.txt";
-    const string[] skidFolders = {"Asphalt", "Dirt", "Grass"};
+    const string[] skidFolders = {"Asphalt", "Dirt", "Grass", "Other"};
 
     void SoftInit() {
         _skidsCached = IsCached();
@@ -52,9 +52,9 @@ namespace SkidsCache {
         //     restartRequired = true;
         // }
         IO::CreateFolder(MainDir);
-        IO::CreateFolder(MainDir + skidFolders[0]);
-        IO::CreateFolder(MainDir + skidFolders[1]);
-        IO::CreateFolder(MainDir + skidFolders[2]);
+        for (int i = 0; i < skidFolders.Length; i++) {
+            IO::CreateFolder(MainDir + skidFolders[i]);
+        }
 
         auto resp = req.String();
         auto lines = resp.Split("\n");

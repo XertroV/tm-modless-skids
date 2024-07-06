@@ -12,6 +12,7 @@ namespace ModFolders {
         skids.InsertLast(SkidmarkFiles(SkidsCache::MainDir + SkidsCache::skidFolders[0]));
         skids.InsertLast(SkidmarkFiles(SkidsCache::MainDir + SkidsCache::skidFolders[1]));
         skids.InsertLast(SkidmarkFiles(SkidsCache::MainDir + SkidsCache::skidFolders[2]));
+        skids.InsertLast(SkidmarkFiles(SkidsCache::MainDir + SkidsCache::skidFolders[3]));
     }
 
     void Reload() {
@@ -87,7 +88,7 @@ class SkidmarkFiles : ModSourceFolder {
         SetSkids(source, dest);
     }
 
-    void ApplySmoke() {
-        auto source = "Skins/Stadium/Skids/" + skidType + "/" + "DirtSmoke.dds";
-    }
+    // void ApplySmoke() {
+    //     auto source = "Skins/Stadium/Skids/" + skidType + "/" + "DirtSmoke.dds";
+    // }
 }

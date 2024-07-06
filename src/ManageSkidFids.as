@@ -21,21 +21,38 @@ dictionary origSkids;
 enum SkidType {
     Asphalt, Dirt, Grass, Sand, Snow, WetWheels, Ice,
     DirtSmoke, AsphaltSmoke,
+    DirtMask_Details, DirtMask_Skin,
     Unknown
 }
 
-void SetSkids(const string &in loadPath, SkidType type) {
+enum CarType {
+    None, Snow, Rally, Desert,
+    XXX_Last,
+}
+
+void SetSkids(const string &in loadPath, SkidType type, CarType carType = CarType::None) {
     string fidPath = type == SkidType::Asphalt ? "GameData/Stadium/Media/Texture CarFx/Image/CarAsphaltMarks.dds"
         : type == SkidType::Dirt ? "GameData/Stadium/Media/Texture CarFx/Image/CarDirtMarks.dds"
         : type == SkidType::Grass ? "GameData/Stadium/Media/Texture CarFx/Image/CarGrassMarks.dds"
-        : type == SkidType::DirtSmoke ? "GameData/Stadium/Media/Texture CarFx/Image/DirtSmoke.dds"
+        : type == SkidType::DirtSmoke ? "GameData/Stadium/Media/Texture CarFx/Image/CarDirtSmoke.dds"
         : type == SkidType::AsphaltSmoke ? "GameData/Vehicles/Media/Texture/Image/AsphaltSmoke.dds"
+        : type == SkidType::DirtMask_Details ? PathForCarSkin("GameData/Skins/Models/CarSport/Stadium/Common/Details_DirtMask.dds", carType)
+        : type == SkidType::DirtMask_Skin ? PathForCarSkin("GameData/Skins/Models/CarSport/Stadium/Common/Skin_DirtMask.dds", carType)
         : ""
         ;
     if (fidPath.Length == 0) {
         throw("unknown skid type: " + tostring(type));
     }
     SetTextureSkids(loadPath, fidPath);
+}
+
+string PathForCarSkin(const string &in path, CarType carType) {
+    if (carType == CarType::None) return path;
+    string carTypeStr = carType == CarType::Snow ? "/Snow/"
+        : carType == CarType::Rally ? "/Rally/"
+        : carType == CarType::Desert ? "/Desert/"
+        : "/Stadium/Common/";
+    return path.Replace("/Stadium/Common/", carTypeStr);
 }
 
 void SetTextureSkids(const string &in loadPath, const string &in gameFidPathToReplace) {
@@ -96,14 +113,25 @@ void ApplySkids() {
     if (S_SkidsGrassPath.Length > 0) ModFolders::skids[2].Apply(S_SkidsGrassPath);
     if (S_DisableDirtSmoke) SetSkids("Skins/Stadium/Skids/Dirt/DirtSmoke.dds", SkidType::DirtSmoke);
     if (S_DisableAsphaltSmoke) SetSkids("Skins/Stadium/Skids/Asphalt/AsphaltSmoke.dds", SkidType::AsphaltSmoke);
+    if (S_DisableDirtMask) SetDirtMaskOff();
     bool anySkids = S_SkidsAsphaltPath.Length > 0 || S_SkidsDirtPath.Length > 0 || S_SkidsGrassPath.Length > 0
-        || S_DisableDirtSmoke || S_DisableAsphaltSmoke;
+        || S_DisableDirtSmoke || S_DisableAsphaltSmoke || S_DisableDirtMask;
     if (anySkids) {
         Notify("Updated Skidmarks. They will be visible when the map changes or you re-enter the map.");
         lastSkidsAppliedTime = Time::Now;
         Meta::SaveSettings();
     }
 }
+
+
+void SetDirtMaskOff() {
+    for (int i = 0; i < CarType::XXX_Last; i++) {
+        SetSkids("Skins/Stadium/Skids/Other/Details_DirtMask.dds", SkidType::DirtMask_Details, CarType(i));
+        SetSkids("Skins/Stadium/Skids/Other/Skin_DirtMask.dds", SkidType::DirtMask_Skin, CarType(i));
+        dev_log("set dirt mask off for car type " + tostring(CarType(i)));
+    }
+}
+
 
 
 uint lastSkidsAppliedTime;
