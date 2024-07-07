@@ -1,4 +1,5 @@
 void Main(){
+    SkidsCache::CheckUpdateSkidsVersions();
     startnew(LoadFonts);
     SkidsCache::SoftInit();
     bool hasExistingSkids = SkidsCache::IsCached();
