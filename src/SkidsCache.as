@@ -23,13 +23,20 @@ namespace SkidsCache {
         return _skidsCached;
     }
 
+    bool isSilentUpdate = false;
     bool isDownloadingSkids = false;
     bool get_Loading() {
         return isDownloadingSkids;
     }
 
+    // mostly for coros
     void DownloadAllSkids() {
+        DownloadAllSkids(false);
+    }
+
+    void DownloadAllSkids(bool silentUpdate) {
         // IO::DeleteFolder(MainDir, true);
+        isSilentUpdate = silentUpdate;
         isDownloadingSkids = true;
         @skidsIndex = UpdateIndexFile();
         DownloadAllMissing(skidsIndex);
@@ -37,7 +44,7 @@ namespace SkidsCache {
     }
 
     string[]@ UpdateIndexFile() {
-        ExtractProgress::Add(1, "Skids Download");
+        ExtractProgress::Add(1, "Update Skids");
         auto req = Net::HttpGet(indexURL);
         while (!req.Finished()) yield();
         if (req.ResponseCode() != 200) {

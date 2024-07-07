@@ -8,7 +8,7 @@ void Main(){
     trace("DEBUG Time::Now: " + Time::Now);
     //
     if (hasExistingSkids) {
-        SkidsCache::DownloadAllSkids();
+        SkidsCache::DownloadAllSkids(true);
     }
     sleep(100);
     auto skidsFolder = Fids::GetGameFolder("Skins\\Stadium\\Skids");

@@ -31,14 +31,24 @@ void RenderInterface() {
     if (!ShowWindow) return;
     UI::SetNextWindowSize(500, 300, UI::Cond::FirstUseEver);
     if (UI::Begin(WindowTitle, ShowWindow, UI::WindowFlags::NoCollapse | UI::WindowFlags::AlwaysAutoResize)) {
-        // main setup flow
-        if (SkidsCache::Loading || !SkidsCache::IsCached()) {
-            DrawSetup_CacheSkids();
-        } else {
-            DrawMainTabs();
-        }
+        DrawInterfaceInner();
     }
     UI::End();
+}
+
+
+[SettingsTab name="Skids" icon="||"]
+void R_S_MainInterfaceAsSettingsTab() {
+    DrawInterfaceInner();
+}
+
+
+void DrawInterfaceInner() {
+    if (SkidsCache::Loading || !SkidsCache::IsCached()) {
+        DrawSetup_CacheSkids();
+    } else {
+        DrawMainTabs();
+    }
 }
 
 
@@ -59,10 +69,14 @@ void DrawMainTabs() {
     if (DoesModWorkFolderExist()) {
         UI::AlignTextToFramePadding();
         UI::TextWrapped("\\$f80ModWork folder detected!\\$z If your skids don't seem to work, try deleting the ModWork folder at Documents/Trackmania/Skins/Stadium/ModWork");
+        if (UI::Button("Open ModWork Folder")) {
+            OpenExplorerPath(IO::FromUserGameFolder("Skins/Stadium/ModWork/"));
+        }
+        UI::TextWrapped("\\$aaaNote: You must delete the entire ModWork folder, not just the contents! (to disable ModWork, that is)");
     } else {
-        UI::Dummy(vec2(10, 40));
+        // UI::Dummy(vec2(10, 40));
     }
-    UI::Separator();
+    UI::SeparatorText("\\$iWarning");
     UI::AlignTextToFramePadding();
     UI::Text("\\$f80Please do not update / uninstall this plugin outside the main menu!");
 }
@@ -75,15 +89,12 @@ void DrawSkidsChoices() {
     S_DisableAsphaltSmoke = UI::Checkbox("Disable Asphalt Smoke?", S_DisableAsphaltSmoke);
     S_DisableDirtSmoke = UI::Checkbox("Disable Dirt Smoke?", S_DisableDirtSmoke);
     S_DisableDirtMask = UI::Checkbox("Disable Dirt Mask?", S_DisableDirtMask);
-    // todo: draw preview?
 
-    UI::BeginDisabled(!IsSafeToUpdateSkids() || Time::Now - lastSkidsAppliedTime < 1000);
+    bool disableAll = !IsSafeToUpdateSkids() || Time::Now - lastSkidsAppliedTime < 1000;
+
+    UI::BeginDisabled(disableAll);
     if (UI::Button("Apply Skids")) {
         startnew(ApplySkids);
-    }
-    UI::SameLine();
-    if (UI::Button("Refresh from Disk")) {
-        startnew(ModFolders::Reload);
     }
     UI::SameLine();
     UI::BeginDisabled(SkidsCache::Loading);
@@ -92,28 +103,85 @@ void DrawSkidsChoices() {
     }
     UI::EndDisabled();
     UI::EndDisabled();
+
+    UI::SetNextItemOpen(true, UI::Cond::FirstUseEver);
+    if (UI::CollapsingHeader("Preview##skid-dds")) {
+        UI::BeginTabBar("skids-tabs");
+
+        if (UI::BeginTabItem("Asphalt")) {
+            ModFolders::skids[0].DrawSkidsPreviewImage(S_SkidsAsphaltPath);
+            UI::EndTabItem();
+        }
+        if (UI::BeginTabItem("Dirt")) {
+            ModFolders::skids[1].DrawSkidsPreviewImage(S_SkidsDirtPath);
+            UI::EndTabItem();
+        }
+        if (UI::BeginTabItem("Grass")) {
+            ModFolders::skids[2].DrawSkidsPreviewImage(S_SkidsGrassPath);
+            UI::EndTabItem();
+        }
+
+        UI::EndTabBar();
+    }
+
+    UI::SeparatorText("Status");
+
     if (!IsSafeToUpdateSkids()) {
         UI::AlignTextToFramePadding();
         UI::Text("Please go back to the main menu to update skids.");
     } else if (Time::Now - lastSkidsAppliedTime < 10000) {
         UI::AlignTextToFramePadding();
         UI::TextWrapped("Skids Updated. They will update in-game when the map changes or you re-enter the map.");
+    } else {
+        UI::AlignTextToFramePadding();
+        UI::TextWrapped("\\$888...");
+    }
+
+    UI::SeparatorText("On-Disk");
+
+    if (UI::Button("Refresh from Disk")) {
+        startnew(ModFolders::Reload);
+    }
+    UI::SameLine();
+    if (UI::Button(Icons::FolderO + " Browse")) {
+        OpenExplorerPath(SkidsCache::MainDir);
     }
 }
 
 string DrawSkidsCombo(SkidmarkFiles@ skids, const string &in selected) {
-    string ret = "";
-    if (UI::BeginCombo(skids.skidType, selected, UI::ComboFlags::HeightLarge)) {
-        if (UI::Selectable("None##none", selected.Length == 0)) {
+    string ret = selected;
+    int selectedIx = -1;
+    bool isSelected;
+    if (UI::BeginCombo("##cb."+skids.skidType, ret, UI::ComboFlags::HeightLarge)) {
+        if (UI::Selectable("None##none", ret.Length == 0)) {
             UI::EndCombo();
             return "";
         }
         for (uint i = 0; i < skids.ddsFiles.Length; i++) {
-            if (UI::Selectable(skids.prettyNames[i], selected == skids.ddsFiles[i])) {
+            isSelected = ret == skids.ddsFiles[i];
+            if (isSelected) selectedIx = i;
+            if (UI::Selectable(skids.prettyNames[i], isSelected)) {
                 ret = skids.ddsFiles[i];
+                selectedIx = i;
             }
         }
         UI::EndCombo();
+    } else {
+        selectedIx = skids.ddsFiles.Find(ret);
+    }
+    UI::SameLine();
+    if (UI::Button(Icons::ChevronLeft + "##prv."+skids.skidType)) {
+        selectedIx = (selectedIx - 1 + skids.ddsFiles.Length) % skids.ddsFiles.Length;
+    }
+    UI::SameLine();
+    if (UI::Button(Icons::ChevronRight + "##nxt."+skids.skidType)) {
+        selectedIx = (selectedIx + 1) % skids.ddsFiles.Length;
+    }
+    UI::SameLine();
+    UI::Text(skids.skidType);
+
+    if (selectedIx >= 0) {
+        ret = skids.ddsFiles[selectedIx];
     }
     return ret.Length == 0 ? selected : ret;
 }

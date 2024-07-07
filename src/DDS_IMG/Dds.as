@@ -24,23 +24,25 @@
 
 namespace IMG
 {
+    string _lastTextureLoadError;
+
     class RawImage
     {
         int Width;
         int Height;
         int Depth;
         string Data; // top to bottom, left to right, RGBA
-        
+
         MemoryBuffer@ ToBitmap()
         {
             MemoryBuffer@ target = MemoryBuffer();
-            
+
             // BMP header
             target.Write("BM");
             target.Write(uint(0)); // BMP Size
             target.Write(uint(0)); // Dummy
             target.Write(14 + 40 + 2); // File offset to pixel array
-            
+
             // DIP header
             target.Write(uint(40));
             target.Write(Width);
@@ -53,9 +55,9 @@ namespace IMG
             target.Write(0); // Vertical resolution
             target.Write(uint(0)); // Color palette size
             target.Write(uint(0)); // Important color count
-            
+
             target.Write(uint16(0)); // Padding for 4-byte alignment
-            
+
             // Pixel array
             // TODO: stop being lazy and figure out how to write in RGBA order
             for (int i = 0; i < Data.Length / 4; ++i)
@@ -65,16 +67,16 @@ namespace IMG
                 target.Write(Data[i * 4 + 0]);
                 target.Write(Data[i * 4 + 3]);
             }
-            
+
             return target;
         }
-        
+
         UI::Texture@ ToTexture()
         {
             return UI::LoadTexture(ToBitmap());
         }
     }
-    
+
     enum CompressedFormat
     {
         None,
@@ -83,7 +85,7 @@ namespace IMG
         DXT3,
         DXT5
     }
-    
+
     namespace _
     {
         int Unpack565(int v0, int v1, uint8&out r, uint8&out g, uint8&out b)
@@ -97,7 +99,7 @@ namespace IMG
             b = (b << 3) | (b >> 2);
             return value;
         }
-        
+
         int DecompressDXTColorBlock(bool isDXT1, const string&in sourceData, int colorBlockOffset, array<uint8>& decompressedBlock)
         {
             array<uint8> codes(16);
@@ -120,7 +122,7 @@ namespace IMG
             }
             codes[8 + 3] = 255;
             codes[12 + 3] = (isDXT1 && a <= b) ? 0 : 255;
-            
+
             array<uint8> indices(16);
             for (int i = 0; i < 4; ++i)
             {
@@ -130,7 +132,7 @@ namespace IMG
                 indices[4 * i + 2] = (packed >> 4) & 3;
                 indices[4 * i + 3] = (packed >> 6) & 3;
             }
-            
+
             for (int i = 0; i < 16; ++i)
             {
                 uint8 offset = 4 * indices[i];
@@ -138,10 +140,10 @@ namespace IMG
                 decompressedBlock[4 * i + 1] = codes[offset + 1];
                 decompressedBlock[4 * i + 2] = codes[offset + 2];
             }
-            
+
             return colorBlockOffset + 8;
         }
-        
+
         int DecompressDXT3AlphaBlock(const string&in sourceData, int alphaBlockOffset, array<uint8>& decompressedBlock)
         {
             for (int i = 0; i < 8; ++i)
@@ -152,15 +154,15 @@ namespace IMG
                 decompressedBlock[8 * i + 3] = low | (low << 4);
                 decompressedBlock[8 * i + 7] = high | (high >> 4);
             }
-            
+
             return alphaBlockOffset + 8;
         }
-        
+
         int DecompressDXT5AlphaBlock(const string&in sourceData, int alphaBlockOffset, array<uint8>& decompressedBlock)
         {
             int alpha0 = sourceData[alphaBlockOffset + 0];
             int alpha1 = sourceData[alphaBlockOffset + 1];
-            
+
             array<uint8> codes(8);
             codes[0] = alpha0;
             codes[1] = alpha1;
@@ -180,7 +182,7 @@ namespace IMG
                     codes[1 + i] = ((7 - i) * alpha0 + i * alpha1) / 7;
                 }
             }
-            
+
             array<uint8> indices(16);
             int k = 2;
             int l = 0;
@@ -192,22 +194,22 @@ namespace IMG
                     int byte = sourceData[alphaBlockOffset + (k++)];
                     value |= byte << (8 * j);
                 }
-                
+
                 for (int j = 0; j < 8; ++j)
                 {
                     uint8 index = (value >> (3 * j)) & 0x7;
                     indices[l++] = index;
                 }
             }
-            
+
             for (int i = 0; i < 16; ++i)
             {
                 decompressedBlock[4 * i + 3] = codes[indices[i]];
             }
-            
+
             return alphaBlockOffset + 8;
         }
-        
+
         int DecompressDXTBlock(CompressedFormat format, const string&in sourceData, int blockOffset, array<uint8>& decompressedBlock)
         {
             if (format == CompressedFormat::DXT3)
@@ -225,19 +227,19 @@ namespace IMG
                     decompressedBlock[4 * i + 3] = 255;
                 }
             }
-            
+
             return DecompressDXTColorBlock(format == CompressedFormat::DXT1, sourceData, blockOffset, decompressedBlock);
         }
-        
+
         string DecompressDXTImage(CompressedFormat format, const string&in sourceData, int sourceOffset, int width, int height, int depth)
         {
             // HACK: don't know a better way to create a fixed size byte span that is not an array.
             int pixelDataSize = width * height * 4 * depth;
             MemoryBuffer@ pixelDataBuffer = MemoryBuffer(pixelDataSize);
             string pixelData = pixelDataBuffer.ReadString(pixelDataSize);
-            
+
             int nextYieldCounter = 64 * 64;
-            
+
             int blockOffset = sourceOffset;
             array<uint8> decompressedBlock(16 * 4);
             for (int z = 0; z < depth; ++z)
@@ -269,7 +271,7 @@ namespace IMG
                                 }
                             }
                         }
-                        
+
                         nextYieldCounter -= 4;
                         if (nextYieldCounter <= 0)
                         {
@@ -279,10 +281,10 @@ namespace IMG
                     }
                 }
             }
-            
+
             return pixelData;
         }
-        
+
         class DdsColorKey // size 8
         {
             void FromBuffer(MemoryBuffer@ source)
@@ -290,11 +292,11 @@ namespace IMG
                 ColorSpaceLowValue = source.ReadUInt32();
                 ColorSpaceHighValue = source.ReadUInt32();
             }
-            
+
             uint ColorSpaceLowValue;
             uint ColorSpaceHighValue;
         }
-        
+
         class DdsPixelFormat
         {
             void FromBuffer(MemoryBuffer@ source)
@@ -308,7 +310,7 @@ namespace IMG
                 BBitMask = source.ReadUInt32();
                 RGBAlphaBitMask = source.ReadUInt32();
             }
-            
+
             uint Size;
             uint Flags;
             uint FourCC;
@@ -340,7 +342,7 @@ namespace IMG
             uint get_RGBZBitMask() const { return RGBAlphaBitMask; }
             uint get_YUVZBitMask() const { return RGBAlphaBitMask; }
         }
-        
+
         class DdsHeader
         {
             void FromBuffer(MemoryBuffer@ source)
@@ -366,7 +368,7 @@ namespace IMG
                 Caps4 = source.ReadUInt32();
                 TextureStage = source.ReadUInt32();
             }
-            
+
             uint Size;
             uint Flags;
             uint Height;
@@ -395,7 +397,7 @@ namespace IMG
             uint get_VolumeDepth() const { return Caps4; }
             uint TextureStage;
         }
-        
+
         class DdsHeaderDXT10
         {
             void FromBuffer(MemoryBuffer@ source)
@@ -406,14 +408,14 @@ namespace IMG
                 ArraySize = source.ReadUInt32();
                 Reserved = source.ReadUInt32();
             }
-            
+
             uint DxgiFormat;
             uint ResourceDimension;
             uint MiscFlag;
             uint ArraySize;
             uint Reserved;
         }
-        
+
         const uint FOURCC_DXT1 = 827611204; // DXT1
         const uint FOURCC_DXT2 = 844388420; // DXT2
         const uint FOURCC_DXT3 = 861165636; // DXT3
@@ -423,7 +425,7 @@ namespace IMG
         const uint FOURCC_ETC1 = 826496069; // ETC1
         const uint FOURCC_ETC2 = 843273285; // ETC2
         const uint FOURCC_ET2A = 1093817413; // ET2A
-        
+
         const uint DXGI_FORMAT_R8G8B8A8_UNORM = 28;
         const uint DXGI_FORMAT_R8G8B8A8_UNORM_SRGB = 26;
         const uint DXGI_FORMAT_BC1_UNORM = 71;
@@ -432,37 +434,37 @@ namespace IMG
         const uint DXGI_FORMAT_BC2_UNORM_SRGB = 75;
         const uint DXGI_FORMAT_BC3_UNORM = 77;
         const uint DXGI_FORMAT_BC3_UNORM_SRGB = 78;
-        
+
         const uint CAPS2_CUBEMAP_ALL_FACES = 64512;
-        
+
         string PeekString(MemoryBuffer@ source, int size)
         {
             string str = source.ReadString(size);
             source.Seek(size, -1);
             return str;
         }
-        
+
         bool IsDdsMagic(const string&in magic)
         {
             return magic == "DDS ";
         }
-        
+
         int Min(int lhs, int rhs)
         {
             return lhs < rhs ? lhs : rhs;
         }
-        
+
         int Max(int lhs, int rhs)
         {
             return lhs > rhs ? lhs : rhs;
         }
-        
+
         int Clamp(int value, int min, int max)
         {
             return Min(Max(min, value), max);
         }
     }
-    
+
     class DdsImage
     {
         DdsImage(int width, int height, int depth, CompressedFormat format, int mipMapCount, const string&in data)
@@ -474,14 +476,14 @@ namespace IMG
             _MipMapCount = mipMapCount;
             _Data = data;
         }
-        
+
         private int _Width;
         private int _Height;
         private int _Depth;
         private CompressedFormat _Format;
         private int _MipMapCount;
         private string _Data;
-        
+
         int3 GetLevelSize(int mipMapLevel) const
         {
             int width = _Width;
@@ -495,12 +497,12 @@ namespace IMG
             }
             return int3(width, height, depth);
         }
-        
+
         int GetMaxLevel() const
         {
             return _MipMapCount - 1;
         }
-        
+
         int GetBestLevel(int minDesiredWidth, int minDesiredHeight, int minDesiredDepth = 0) const
         {
             minDesiredWidth = minDesiredWidth < 0 ? _Width : minDesiredWidth;
@@ -516,20 +518,20 @@ namespace IMG
             }
             return GetMaxLevel();
         }
-        
+
         RawImage@ DecompressLevel(int mipMapLevel)
         {
+            RawImage@ rawImage = RawImage();
             switch (_Format)
             {
             case DXT1:
             case DXT3:
             case DXT5:
             {
-                RawImage@ rawImage = RawImage();
                 rawImage.Width = _Width;
                 rawImage.Height = _Height;
                 rawImage.Depth = _Depth;
-                
+
                 int blockSize = _Format == CompressedFormat::DXT1 ? 8 : 16;
                 int dataOffset = 0;
                 for (int i = 0; i < mipMapLevel; ++i)
@@ -537,38 +539,37 @@ namespace IMG
                     uint blockCountWidth = (rawImage.Width + 3) / 4;
                     uint blockCountHeight = (rawImage.Height + 3) / 4;
                     dataOffset += blockSize * blockCountWidth * blockCountHeight * rawImage.Depth;
-                    
+
                     rawImage.Width = _::Max(1, rawImage.Width / 2);
                     rawImage.Height = _::Max(1, rawImage.Height / 2);
                     rawImage.Depth = _::Max(1, rawImage.Depth / 2);
                 }
-                
+
                 rawImage.Data = _::DecompressDXTImage(_Format, _Data, dataOffset, rawImage.Width, rawImage.Height, rawImage.Depth);
-                return @rawImage;
             }
             default:
-                warn("Not implemented: only DXT1,2,3 compressions are supported.");
-                return null;
+                _lastTextureLoadError = "Not implemented: only DXT1,2,3 compressions are supported.";
             }
+            return @rawImage;
         }
-        
+
         RawImage@ DecompressSize(int minWidth, int minHeight, int minDepth = 0)
         {
             return DecompressLevel(GetBestLevel(minWidth, minHeight, minDepth));
         }
     }
-    
+
     class DdsContainer
     {
         bool IsCubeMap;
         array<DdsImage@> Images;
     }
-    
+
     bool IsDds(MemoryBuffer@ source)
     {
         return _::IsDdsMagic(_::PeekString(source, 4));
     }
-    
+
     bool IsDds(const string&in filepath)
     {
         IO::File file(filepath, IO::FileMode::Read);
@@ -576,35 +577,35 @@ namespace IMG
         {
             return false;
         }
-        
+
         MemoryBuffer@ buffer = file.Read(4);
         string magic = buffer.ReadString(4);
         return _::IsDdsMagic(magic);
     }
-    
+
     DdsContainer@ LoadDdsContainer(MemoryBuffer@ source)
     {
         if (source.GetSize() < 128)
         {
-            warn("Invalid DDS format: source is too small to fit DDS header.");
+            _lastTextureLoadError = "Invalid DDS format: source is too small to fit DDS header.";
             return null;
         }
-        
+
         string magic = source.ReadString(4);
         if (!_::IsDdsMagic(magic))
         {
-            warn("Invalid DDS format: magic is not 'DDS '.");
+            _lastTextureLoadError = "Invalid DDS format: magic is not 'DDS '.";
             return null;
         }
-        
+
         _::DdsHeader header;
         header.FromBuffer(@source);
-        
+
         CompressedFormat format = CompressedFormat::None;
         uint fourCC = header.PixelFormat.FourCC;
         bool isSRGB = false;
         uint imageCount = 1;
-        
+
         _::DdsHeaderDXT10 headerDXT10;
         switch (header.PixelFormat.FourCC)
         {
@@ -620,7 +621,7 @@ namespace IMG
         case _::FOURCC_DX10:
             headerDXT10.FromBuffer(@source);
             imageCount = headerDXT10.ArraySize;
-            
+
             switch (headerDXT10.DxgiFormat)
             {
             case _::DXGI_FORMAT_BC1_UNORM_SRGB:
@@ -645,30 +646,30 @@ namespace IMG
                 const uint rgbBitCount = header.PixelFormat.RGBBitCount;
                 if ((rgbBitCount != 16) and (rgbBitCount != 24) and (rgbBitCount != 32))
                 {
-                    warn("Invalid DDS format: pixel byte size is invalid.");
+                    _lastTextureLoadError = "Invalid DDS format: pixel byte size is invalid.";
                     return null;
                 }
                 format = CompressedFormat::RGBA;
-                warn("Not implemented: uncompressed DDS is not supported.");
+                _lastTextureLoadError = "Not implemented: uncompressed DDS is not supported.";
                 return null;
             }
             default:
-                warn("Invalid DDS format: DXGI format is not recognized.");
+                _lastTextureLoadError = "Invalid DDS format: DXGI format is not recognized.";
                 return null;
             }
-            
+
             break;
         default:
-            warn("Not implemented: only DXT1,3,5,10 FourCCs are supported.");
+            _lastTextureLoadError = "Not implemented: only DXT1,3,5,10 FourCCs are supported.";
             return null;
         }
-        
+
         bool isCubeMap = (header.Caps2 & _::CAPS2_CUBEMAP_ALL_FACES) != 0;
         if (isCubeMap)
         {
             imageCount = 6;
         }
-        
+
         int dataSize = 0;
         int depth = _::Max(1, header.Depth);
         if (format != CompressedFormat::RGBA)
@@ -677,7 +678,7 @@ namespace IMG
             uint blockCountWidth = (header.Width + 3) / 4;
             uint blockCountHeight = (header.Height + 3) / 4;
             dataSize = blockSize * blockCountWidth * blockCountHeight * depth;
-            
+
             uint x = header.Width;
             uint y = header.Height;
             uint z = depth;
@@ -706,7 +707,7 @@ namespace IMG
                 dataSize += (header.PixelFormat.RGBBitCount / 8) * _::Max(1, x) * _::Max(1, y) * _::Max(1, z);
             }
         }
-        
+
         DdsContainer@ ddsContainer = DdsContainer();
         ddsContainer.IsCubeMap = isCubeMap;
         for (uint imageIndex = 0; imageIndex < imageCount; ++imageIndex)
@@ -718,13 +719,13 @@ namespace IMG
                 format,
                 _::Max(1, header.MipMapCount),
                 source.ReadString(dataSize));
-            
+
             ddsContainer.Images.InsertLast(@image);
         }
-        
+
         return @ddsContainer;
     }
-    
+
     DdsContainer@ LoadDdsContainer(const string&in filepath)
     {
         IO::File file(filepath, IO::FileMode::Read);

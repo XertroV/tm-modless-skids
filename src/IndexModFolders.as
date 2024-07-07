@@ -88,7 +88,42 @@ class SkidmarkFiles : ModSourceFolder {
         SetSkids(source, dest);
     }
 
+    void DrawSkidsPreviewImage(const string &in skidPath) {
+        auto pos = UI::GetCursorPos();
+        // UI::Dummy(previewSize * vec2(2., 1.));
+        UI::SetCursorPos(pos);
+        if (skidPath.Length == 0) {
+            UI::TextWrapped("No skid selected");
+            return;
+        }
+        auto source = IO::FromUserGameFolder("Skins/Stadium/Skids/" + skidType + "/" + skidPath);
+        if (!IO::FileExists(source)) {
+            UI::TextWrapped("Missing: " + source);
+            return;
+        }
+        auto @texHandle = textureManager.RequestTexture(source, previewSize.x, previewSize.y);
+        if (texHandle is null || texHandle.Texture is null) {
+            UI::TextWrapped("Loading... (or error)");
+            UI::TextWrapped("Last texture load error: " + IMG::_lastTextureLoadError);
+            return;
+        }
+        UI::Image(texHandle.Texture, previewSize);
+        UI::SameLine();
+        pos = UI::GetCursorPos();
+        auto dl = UI::GetWindowDrawList();
+        dl.AddRectFilled(vec4(UI::GetWindowPos() + pos, previewSize), vec4(.5, .5, .5, 1.));
+        UI::Image(texHandle.Texture, previewSize);
+        UI::SameLine();
+        pos = UI::GetCursorPos();
+        dl.AddRectFilled(vec4(UI::GetWindowPos() + pos, previewSize), vec4(1.));
+        UI::Image(texHandle.Texture, previewSize);
+    }
+
     // void ApplySmoke() {
     //     auto source = "Skins/Stadium/Skids/" + skidType + "/" + "DirtSmoke.dds";
     // }
 }
+
+const vec2 previewSize = vec2(256, 256);
+
+IMG::TextureManager textureManager = IMG::TextureManager();
