@@ -14,12 +14,16 @@ They're also cached so you only need to download them once.
 
 **Note: please do not update this plugin while in a map.**
 
-License: Public Domain
+License: Public Domain (except DDS_IMG folder)
 
-Authors: XertroV
+Authors: XertroV; DDS IMG stuff: voblivion
 
 Suggestions/feedback: @XertroV on Openplanet discord
 
 Code/issues: [https://github.com/XertroV/tm-modless-skids](https://github.com/XertroV/tm-modless-skids)
 
 GL HF
+
+#### Openplanet-IMG
+
+<https://github.com/voblivion/Openplanet-IMG>
