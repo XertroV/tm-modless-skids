@@ -41,6 +41,7 @@ namespace SkidsCache {
         isSilentUpdate = silentUpdate;
         isDownloadingSkids = true;
         @skidsIndex = UpdateIndexFile();
+        yield();
         DownloadAllMissing(skidsIndex);
         isDownloadingSkids = false;
     }
@@ -70,6 +71,7 @@ namespace SkidsCache {
         IO::File ixf(IndexFile, IO::FileMode::Write);
         ixf.Write(resp);
         trace('updated index file at: ' + IndexFile);
+        ixf.Close();
         return lines;
     }
 
@@ -88,6 +90,7 @@ namespace SkidsCache {
             } else {
                 ExtractProgress::Done();
             }
+            yield();
         }
         await(coros);
         startnew(RefreshSkinsUserMedia);
