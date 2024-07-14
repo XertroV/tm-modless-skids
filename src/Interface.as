@@ -37,7 +37,7 @@ void RenderInterface() {
 }
 
 
-[SettingsTab name="Skids" icon="||"]
+[SettingsTab name="Skids" icon="Car"]
 void R_S_MainInterfaceAsSettingsTab() {
     DrawInterfaceInner();
 }

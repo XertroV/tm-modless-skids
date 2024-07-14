@@ -40,13 +40,10 @@ namespace ExtractProgress {
             return;
         }
 
-#if DEV
-#else
         // don't show progress for silent updates
         if (SkidsCache::isSilentUpdate && count == 1 && done == 0) {
             return;
         }
-#endif
 
         UI::SetNextWindowPos(Draw::GetWidth() * 9 / 20, Draw::GetHeight() * 4 / 20, UI::Cond::Appearing);
         if (UI::Begin(currLabel + " Progress", UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoCollapse | UI::WindowFlags::NoCollapse)) {

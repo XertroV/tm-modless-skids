@@ -25,7 +25,7 @@ namespace SkidsCache {
         return _skidsCached;
     }
 
-    bool isSilentUpdate = false;
+    bool isSilentUpdate = true;
     bool isDownloadingSkids = false;
     bool get_Loading() {
         return isDownloadingSkids;
@@ -62,9 +62,11 @@ namespace SkidsCache {
         //     restartRequired = true;
         // }
         IO::CreateFolder(MainDir);
-        for (int i = 0; i < skidFolders.Length; i++) {
+        for (uint i = 0; i < skidFolders.Length; i++) {
             IO::CreateFolder(MainDir + skidFolders[i]);
         }
+
+        yield();
 
         auto resp = req.String();
         auto lines = resp.Split("\n");
@@ -76,17 +78,30 @@ namespace SkidsCache {
     }
 
     void DownloadAllMissing(string[]@ files) {
-        ExtractProgress::Add(files.Length);
-        Meta::PluginCoroutine@[] coros;
+        auto allSubFiles = IO::IndexFolder(MainDir, true);
+        dictionary skidsDownloaded;
+        for (uint i = 0; i < allSubFiles.Length; i++) {
+            skidsDownloaded[allSubFiles[i].Split("Skins/Stadium/Skids/")[1]] = true;
+        }
+        string[] missing;
         for (uint i = 0; i < files.Length; i++) {
-            if (files[i].Length == 0) {
-                ExtractProgress::SubOne();
-                continue;
+            if (files[i].Length == 0) continue;
+            if (!skidsDownloaded.Exists(files[i])) {
+                missing.InsertLast(files[i]);
             }
-            auto path = MainDir + files[i];
+        }
+        trace("n missing skids: " + missing.Length);
+        if (missing.Length == 0) {
+            return;
+        }
+
+        ExtractProgress::Add(missing.Length);
+        Meta::PluginCoroutine@[] coros;
+        for (uint i = 0; i < missing.Length; i++) {
+            auto path = MainDir + missing[i];
             if (!IO::FileExists(path)) {
                 trace("Missing: " + path);
-                coros.InsertLast(startnew(DownloadSkids, files[i]));
+                coros.InsertLast(startnew(DownloadSkids, missing[i]));
             } else {
                 ExtractProgress::Done();
             }
@@ -100,6 +115,7 @@ namespace SkidsCache {
     void DownloadSkids(const string &in skidPath) {
         try {
             string url = baseURL + skidPath;
+            trace("Downloading skid: " + skidPath + " from " + url);
             auto req = Net::HttpGet(url);
             while (!req.Finished()) yield();
             if (req.ResponseCode() != 200) {

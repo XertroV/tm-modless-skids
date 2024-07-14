@@ -101,7 +101,7 @@ class SkidmarkFiles : ModSourceFolder {
             UI::TextWrapped("Missing: " + source);
             return;
         }
-        auto @texHandle = textureManager.RequestTexture(source, previewSize.x, previewSize.y);
+        auto @texHandle = textureManager.RequestTexture(source, int(previewSize.x), int(previewSize.y));
         if (texHandle is null || texHandle.Texture is null) {
             UI::TextWrapped("Loading... (or error)");
             UI::TextWrapped("Last texture load error: " + IMG::_lastTextureLoadError);

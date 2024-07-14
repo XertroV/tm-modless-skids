@@ -80,8 +80,8 @@ void SetTextureSkids(const string &in loadPath, const string &in gameFidPathToRe
     }
 
     SetFidNod(skidsGameFid, gbSkid.Nod);
-    dev_log("set " + gameFidPathToReplace + " to " + loadPath);
-    warn("DEBUG set " + gameFidPathToReplace + " to " + loadPath);
+    // dev_log("set " + gameFidPathToReplace + " to " + loadPath);
+    warn("["+Time::Now+"] SKIDS set " + gameFidPathToReplace + " to " + loadPath);
 }
 
 void SetFidNod(CSystemFidFile@ fid, CMwNod@ nod) {
