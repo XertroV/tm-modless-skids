@@ -96,7 +96,7 @@ namespace SkidsCache {
         }
 
         ExtractProgress::Add(missing.Length);
-        Meta::PluginCoroutine@[] coros;
+        awaitable@[] coros;
         for (uint i = 0; i < missing.Length; i++) {
             auto path = MainDir + missing[i];
             if (!IO::FileExists(path)) {

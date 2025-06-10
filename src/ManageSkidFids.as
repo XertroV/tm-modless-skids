@@ -56,6 +56,7 @@ string PathForCarSkin(const string &in path, CarType carType) {
 }
 
 void SetTextureSkids(const string &in loadPath, const string &in gameFidPathToReplace) {
+    trace("SetTextureSkids: " + loadPath + " -> " + gameFidPathToReplace);
     auto gbSkid = Fids::GetUser(loadPath);
     // auto gbSkid = Fids::GetUser("Skins/Stadium/Skids/Asphalt/BlackBorder.dds");
     if (gbSkid is null || gbSkid.ByteSize == 0) {
@@ -64,6 +65,7 @@ void SetTextureSkids(const string &in loadPath, const string &in gameFidPathToRe
     }
 
     if (gbSkid.Nod is null) {
+        trace(" > SetTextureSkids: preloading chosen skids nod & adding reference");
         Fids::Preload(gbSkid);
         gbSkid.Nod.MwAddRef();
     }
@@ -71,14 +73,17 @@ void SetTextureSkids(const string &in loadPath, const string &in gameFidPathToRe
     auto skidsGameFid = Fids::GetGame(gameFidPathToReplace);
 
     if (skidsGameFid.Nod is null) {
+        trace(" > SetTextureSkids: preloading default game skids nod & adding reference");
         Fids::Preload(skidsGameFid);
         skidsGameFid.Nod.MwAddRef();
     }
 
     if (!origSkids.Exists(gameFidPathToReplace)) {
+        trace(" > SetTextureSkids: caching original skids nod");
         @origSkids[gameFidPathToReplace] = cast<CPlugFileDds>(skidsGameFid.Nod);
     }
 
+    trace(" > SetTextureSkids: setting skids nod on fid now (confirmation to follow).");
     SetFidNod(skidsGameFid, gbSkid.Nod);
     // dev_log("set " + gameFidPathToReplace + " to " + loadPath);
     warn("["+Time::Now+"] SKIDS set " + gameFidPathToReplace + " to " + loadPath);
