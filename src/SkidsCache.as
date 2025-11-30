@@ -40,10 +40,30 @@ namespace SkidsCache {
         // IO::DeleteFolder(MainDir, true);
         isSilentUpdate = silentUpdate;
         isDownloadingSkids = true;
-        @skidsIndex = UpdateIndexFile();
+        try {
+            @skidsIndex = UpdateIndexFile();
+        } catch {
+            // If index update fails but we have an existing index, use that instead
+            if (IO::FileExists(IndexFile)) {
+                trace("Failed to update index, falling back to existing index: " + getExceptionInfo());
+                @skidsIndex = LoadIndexFile();
+            } else {
+                // Re-throw if we don't have a fallback
+                throw(getExceptionInfo());
+            }
+        }
         yield();
         DownloadAllMissing(skidsIndex);
         isDownloadingSkids = false;
+    }
+
+    string[]@ LoadIndexFile() {
+        trace("Loading existing index file: " + IndexFile);
+        IO::File ixf(IndexFile, IO::FileMode::Read);
+        auto content = ixf.ReadToEnd();
+        ixf.Close();
+        auto lines = content.Split("\n");
+        return lines;
     }
 
     string[]@ UpdateIndexFile() {
