@@ -18,6 +18,9 @@ dictionary origSkids;
 // "GameData/Vehicles/Media/Texture/Image/SandSmoke.dds"
 // "GameData/Vehicles/Media/Texture/Image/SnowSmoke.dds"
 
+// new vistas
+// GameData\BlueBay\Media\Texture CarFx\Image\CarAsphaltMarks.dds
+
 enum SkidType {
     Asphalt, Dirt, Grass, Sand, Snow, WetWheels, Ice,
     DirtSmoke, AsphaltSmoke,
@@ -44,6 +47,12 @@ void SetSkids(const string &in loadPath, SkidType type, CarType carType = CarTyp
         throw("unknown skid type: " + tostring(type));
     }
     SetTextureSkids(loadPath, fidPath);
+    if (fidPath.StartsWith("GameData/Stadium")) {
+        SetTextureSkids(loadPath, fidPath.Replace("GameData/Stadium", "GameData/BlueBay"));
+        SetTextureSkids(loadPath, fidPath.Replace("GameData/Stadium", "GameData/GreenCoast"));
+        SetTextureSkids(loadPath, fidPath.Replace("GameData/Stadium", "GameData/RedIsland"));
+        SetTextureSkids(loadPath, fidPath.Replace("GameData/Stadium", "GameData/WhiteShore"));
+    }
 }
 
 string PathForCarSkin(const string &in path, CarType carType) {
@@ -86,7 +95,7 @@ void SetTextureSkids(const string &in loadPath, const string &in gameFidPathToRe
     trace(" > SetTextureSkids: setting skids nod on fid now (confirmation to follow).");
     SetFidNod(skidsGameFid, gbSkid.Nod);
     // dev_log("set " + gameFidPathToReplace + " to " + loadPath);
-    warn("["+Time::Now+"] SKIDS set " + gameFidPathToReplace + " to " + loadPath);
+    print("["+Time::Now+"] SKIDS set " + gameFidPathToReplace + " to " + loadPath);
 }
 
 void SetFidNod(CSystemFidFile@ fid, CMwNod@ nod) {
