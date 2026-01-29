@@ -2,7 +2,7 @@
 name     = "Modless Skids"
 author   = "XertroV"
 category = "Race"
-version  = "0.2.4"
+version  = "0.2.5"
 siteid = 454
 
 [script]
